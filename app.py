@@ -1,45 +1,28 @@
 from flask import Flask, request, render_template
 import psycopg2
 import pandas as pd
-import os
-
 
 app = Flask(__name__)
 
-# Database credentials (FROM SUPABASE)
-DB_HOST = "db.erdhktauqqvehhhhczds.supabase.co"
-DB_NAME = "postgres"          # Default Supabase database name
-DB_USER = "postgres"          # Default Supabase user
-DB_PASS = "nba_db@123_nbadb"
-DB_PORT = "5432"              # Default port
+# Your Neon PostgreSQL URL
+DB_URL = "postgresql://neondb_owner:npg_SFQj7Ux2EdBb@ep-morning-mountain-a49enedp-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require"
 
-def run_query(query):
-    conn = psycopg2.connect(
-        host=DB_HOST,
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASS,
-        port=DB_PORT,
-        sslmode="require"     # IMPORTANT for Supabase!
-    )
-    df = pd.read_sql_query(query, conn)
+def run_query(sql_query):
+    conn = psycopg2.connect(DB_URL)
+    df = pd.read_sql_query(sql_query, conn)
     conn.close()
     return df
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    output_table = None
-    error_message = None
-
+    output = None
     if request.method == 'POST':
-        user_query = request.form['query']
+        query = request.form.get('query')
         try:
-            output_table = run_query(user_query)
+            output = run_query(query)
         except Exception as e:
-            error_message = f"Error: {str(e)}"
+            output = f"Error: {e}"
+    return render_template('index.html', output=output)
 
-    return render_template('index.html', table=output_table, error=error_message)
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Render provides PORT
-    app.run(host="0.0.0.0", port=port)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
