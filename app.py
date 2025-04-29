@@ -7,9 +7,9 @@ import os
 app = Flask(__name__)
 
 # Database credentials (FROM SUPABASE)
-DB_HOST = "db.erdhktauqqvehhhhczds.supabase.co"
+DB_HOST = "aws-0-us-east-2.pooler.supabase.com"
 DB_NAME = "postgres"          # Default Supabase database name
-DB_USER = "postgres"          # Default Supabase user
+DB_USER = "postgres.erdhktauqqvehhhhczds"          # Default Supabase user
 DB_PASS = "281803"
 DB_PORT = "5432"              # Default port
 
