@@ -7,11 +7,11 @@ import os
 app = Flask(__name__)
 
 # Database credentials (FROM SUPABASE)
-DB_HOST = "aws-0-us-east-2.pooler.supabase.com"
+DB_HOST = "db.erdhktauqqvehhhhczds.supabase.co"
 DB_NAME = "postgres"          # Default Supabase database name
-DB_USER = "postgres.erdhktauqqvehhhhczds"          # Default Supabase user
+DB_USER = "postgres"          # Default Supabase user
 DB_PASS = "nba_db@123_nbadb"
-DB_PORT = "6543"              # Default port
+DB_PORT = "5432"              # Default port
 
 def run_query(query):
     conn = psycopg2.connect(
