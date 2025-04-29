@@ -1,57 +1,42 @@
 from flask import Flask, request, render_template
 import psycopg2
-import os
-import socket
+import pandas as pd
 
 app = Flask(__name__)
 
-# Supabase PostgreSQL credentials from environment variables
-DB_HOST = os.environ.get('DB_HOST')
-DB_NAME = os.environ.get('DB_NAME')
-DB_USER = os.environ.get('DB_USER')
-DB_PASS = os.environ.get('DB_PASS')
-DB_PORT = os.environ.get('DB_PORT', 5432)
+# Database credentials (FROM SUPABASE)
+DB_HOST = "db.erdhktauqqvehhhhczds.supabase.co"
+DB_NAME = "postgres"          # Default Supabase database name
+DB_USER = "postgres"          # Default Supabase user
+DB_PASS = "281803"
+DB_PORT = "5432"              # Default port
 
-# 🔥 DEBUG: Print all database environment values
-print("\n=== DATABASE CONFIGURATION ===")
-print(f"DB_HOST: {DB_HOST}")
-print(f"DB_NAME: {DB_NAME}")
-print(f"DB_USER: {DB_USER}")
-print(f"DB_PASS: {DB_PASS}")
-print(f"DB_PORT: {DB_PORT}")
-print("===============================\n")
+def run_query(query):
+    conn = psycopg2.connect(
+        host=DB_HOST,
+        dbname=DB_NAME,
+        user=DB_USER,
+        password=DB_PASS,
+        port=DB_PORT,
+        sslmode="require"     # IMPORTANT for Supabase!
+    )
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+    return df
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    result = None
-    headers = None
-    error = None
+    output_table = None
+    error_message = None
+
     if request.method == 'POST':
-        sql = request.form['sql']
+        user_query = request.form['query']
         try:
-            # 🔥 DEBUG: Try resolving DB_HOST to IPv4
-            print(f"Trying to resolve {DB_HOST} to IPv4 address...")
-            ipv4_host = socket.gethostbyname(DB_HOST)
-            print(f"Resolved IPv4 address: {ipv4_host}")
-
-            conn = psycopg2.connect(
-                host=ipv4_host,
-                dbname=DB_NAME,
-                user=DB_USER,
-                password=DB_PASS,
-                port=DB_PORT,
-                options='-c statement_timeout=10000'
-            )
-            cur = conn.cursor()
-            cur.execute(sql)
-            rows = cur.fetchall()
-            headers = [desc[0] for desc in cur.description]
-            cur.close()
-            conn.close()
+            output_table = run_query(user_query)
         except Exception as e:
-            print(f"🔥 ERROR during query execution: {e}")
-            error = str(e)
-    return render_template('index.html', headers=headers, result=result, error=error)
+            error_message = f"Error: {str(e)}"
 
-if __name__ == '__main__':
+    return render_template('index.html', table=output_table, error=error_message)
+
+if __name__ == "__main__":
     app.run(debug=True)
